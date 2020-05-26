@@ -1,7 +1,7 @@
 import strutils, db_sqlite, kaiser, json, sequtils, times, os, rdstdin
 
-var
-    db: DbConn
+var db: DbConn
+const NJVERSION = "0.2.0"
 
 proc searchJournal(s:string)=
     var q = "SELECT * FROM journal WHERE title like '"&s&"'"
@@ -119,7 +119,7 @@ proc main()=
     var args = a[":args"].getElems().toStrArray()
 
     if args.len == 0:
-        return
+        args = @["shell"]
         
     let command = args.shift()
     
@@ -127,7 +127,7 @@ proc main()=
     
     case command
     of "help", "h":
-        echo "Journal"
+        echo "Journal "+NJVERSION
         echo "$ write/w [title ::] <message> [t:tag] [t:othertag] [m:mood]"
         echo "                  ^ seperator for splitting title from message"
         echo "$ delete/del/d <... id list>"
@@ -136,6 +136,10 @@ proc main()=
         echo "$ get/g <id>"
         echo "$ mood/m <mood>"
         echo "$ ls/list"
+        echo ""
+        echo "ENV"
+        echo "Change these environment variables to desired effects."
+        echo "NJ_DEFAULT_ORDER = ASC/DESC - Changes the list command order."
     of "write", "w":
         args.writeToJournal
     of "del", "delete", "d":
@@ -149,17 +153,23 @@ proc main()=
     of "mood", "m":
         args.join(" ").searchJournalByMood
     of "ls", "list":
-        var order = "DESC"
-        for x in db.fastRows(sql"SELECT * FROM journal ORDER by id DESC"):
+        var order = getEnv("NJ_DEFAULT_ORDER", "DESC")
+        let s = "SELECT * FROM journal ORDER by id "+order
+        for x in db.fastRows(s.sql):
             echo "== ("+x[0]+") " + x[1] + " =="
             echo x[2]
             echo "@ "+x[5]
             echo x[4].split(":").join(" - ")
             echo "Mood: " + x[3]
             echo "----"
+    of "shell":
+        echo "Journal - Shell mode"
+        echo "Write text here to write in to the journal, bypassing any restrictions that may come from writing in to the command arguments."
+        var input = readLineFromStdin("> ").split(" ")
+        input.writeToJournal
+    of "v", "version":
+        echo NJVERSION
     else:
-        args.unshift(command)
-        args.writeToJournal
-        
+        echo "Invalid command."
 db = open(getHomeDir()&"/njournal.db", "", "", "")
 main()
