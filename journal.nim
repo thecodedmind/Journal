@@ -1,36 +1,51 @@
 import strutils, db_sqlite, kaiser, json, sequtils, times, os, rdstdin
 
 var db: DbConn
-const NJVERSION = "0.2.0"
+const NJVERSION = "0.2.1"
 
 proc searchJournal(s:string)=
     var q = "SELECT * FROM journal WHERE title like '"&s&"'"
     for x in db.fastRows(sql(q)):
-        echo "== ("+x[0]+") " + x[1] + " =="
+        var title = "Entry"
+        if x[1] != "":
+            title = x[1]
+        echo "== ("+x[0]+") " + title + " =="
         echo x[2]
         echo "@ "+x[5]
-        echo x[4].split(":").join(" - ")
-        echo "Mood: " + x[3]
+        if x[4] != "":
+            echo x[4].split(":").join(" - ")
+        if x[3] != "":
+            echo "Mood: " + x[3]
         echo "----"
         
 proc searchJournalByID(s:string)=
     var q = "SELECT * FROM journal WHERE id = '"&s&"'"
     for x in db.fastRows(sql(q)):
-        echo "== ("+x[0]+") " + x[1] + " =="
+        var title = "Entry"
+        if x[1] != "":
+            title = x[1]
+        echo "== ("+x[0]+") " + title + " =="
         echo x[2]
         echo "@ "+x[5]
-        echo x[4].split(":").join(" - ")
-        echo "Mood: " + x[3]
+        if x[4] != "":
+            echo x[4].split(":").join(" - ")
+        if x[3] != "":
+            echo "Mood: " + x[3]
         echo "----"
         
 proc searchJournalByMood(s:string)=
     var q = "SELECT * FROM journal WHERE mood = '"&s&"'"
     for x in db.fastRows(sql(q)):
-        echo "== ("+x[0]+") " + x[1] + " =="
+        var title = "Entry"
+        if x[1] != "":
+            title = x[1]
+        echo "== ("+x[0]+") " + title + " =="
         echo x[2]
         echo "@ "+x[5]
-        echo x[4].split(":").join(" - ")
-        echo "Mood: " + x[3]
+        if x[4] != "":
+            echo x[4].split(":").join(" - ")
+        if x[3] != "":
+            echo "Mood: " + x[3]
         echo "----"
         
 proc searchJournalByTag(s:seq[string])=
@@ -42,22 +57,32 @@ proc searchJournalByTag(s:seq[string])=
                 send = true
 
         if send:
-            echo "== ("+x[0]+") " + x[1] + " =="
+            var title = "Entry"
+            if x[1] != "":
+                title = x[1]
+            echo "== ("+x[0]+") " + title + " =="
             echo x[2]
             echo "@ "+x[5]
-            echo x[4].split(":").join(" - ")
-            echo "Mood: " + x[3]
+            if x[4] != "":
+                echo x[4].split(":").join(" - ")
+            if x[3] != "":
+                echo "Mood: " + x[3]
             echo "----"
             
 proc deleteEntry(s:seq[string])=
     for id in s:
         var q = "SELECT * FROM journal WHERE id = '"&id&"'"
         for x in db.fastRows(sql(q)):
-            echo "== ("+x[0]+") " + x[1] + " =="
+            var title = "Entry"
+            if x[1] != "":
+                title = x[1]
+            echo "== ("+x[0]+") " + title + " =="
             echo x[2]
             echo "@ "+x[5]
-            echo x[4].split(":").join(" - ")
-            echo "Mood: " + x[3]
+            if x[4] != "":
+                echo x[4].split(":").join(" - ")
+            if x[3] != "":
+                echo "Mood: " + x[3]
             echo "----"
             echo "Delete this entry? (y/n)"
             let input = readLineFromStdin("> ")
@@ -156,11 +181,16 @@ proc main()=
         var order = getEnv("NJ_DEFAULT_ORDER", "DESC")
         let s = "SELECT * FROM journal ORDER by id "+order
         for x in db.fastRows(s.sql):
-            echo "== ("+x[0]+") " + x[1] + " =="
+            var title = "Entry"
+            if x[1] != "":
+                title = x[1]
+            echo "== ("+x[0]+") " + title + " =="
             echo x[2]
             echo "@ "+x[5]
-            echo x[4].split(":").join(" - ")
-            echo "Mood: " + x[3]
+            if x[4] != "":
+                echo x[4].split(":").join(" - ")
+            if x[3] != "":
+                echo "Mood: " + x[3]
             echo "----"
     of "shell":
         echo "Journal - Shell mode"
